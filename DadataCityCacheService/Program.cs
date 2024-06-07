@@ -1,4 +1,5 @@
 using DadataCityCacheService.Models;
+using DadataCityCacheService.Services.DadataApiClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 
@@ -11,6 +12,20 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+
+builder.Services.Configure<DadataApiPreferences>(
+    builder.Configuration.GetSection(nameof(DadataApiPreferences)));
+
+var preferences = builder.Configuration.GetSection(nameof(DadataApiPreferences))
+    .Get<DadataApiPreferences>();
+
+if (preferences == null)
+{
+    throw new ArgumentNullException("DadataApiPreferences should be set");
+}
+builder.Services.AddSingleton<IDadataApiClient, DadataApiClient>(x =>
+    new DadataApiClient(preferences, x.GetRequiredService<ILogger<DadataApiClient>>()));
+
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseMySql(connectionString, new MySqlServerVersion(new Version(10, 4, 17))));

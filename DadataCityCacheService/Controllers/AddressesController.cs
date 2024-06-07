@@ -1,9 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
-using Dadata;
 using Dadata.Model;
-using System.Text;
 using DadataCityCacheService.Models;
-using System;
+using DadataCityCacheService.Services.DadataApiClient;
 
 namespace DadataCityCacheService.Controllers
 {
@@ -24,27 +22,21 @@ namespace DadataCityCacheService.Controllers
 
 
     [ApiController]
-    [Route("[controller]")]
-    public class DadaCacheController : ControllerBase
+    [Route("api/addresses")]
+    public class AddressesController : ControllerBase
     {
-        AppDbContext _context;
-        public DadaCacheController(AppDbContext context)
+        private readonly AppDbContext _context;
+        private readonly IDadataApiClient _dadataApiClient;
+        public AddressesController(AppDbContext context, IDadataApiClient dadataApiClient)
         {
             _context = context;
+            _dadataApiClient = dadataApiClient;
         }
 
         [HttpGet]
-        public async Task<ActionResult<string[]>> Get([FromBody] string request)
+        public async Task<ActionResult<string[]>> GetAddressInfo([FromBody] string request)
         {
-            var token = "055fa6c2af4562aeee76ada479f00b2218610bd0";
-            var secret = "2a984b6d1c9211c0ba9f209148a5f73f0a7c4a34";
-
-            var api = new CleanClientAsync(token, secret);
-
-            var address = await api.Clean<Address>(request);
-
-
-            if (!await CheckResponseCorrect()) throw new();
+            var address = await _dadataApiClient.GetAddress(request);
 
 
             await SaveToDb(address.GetCityInfoOnly());
@@ -168,6 +160,9 @@ namespace DadataCityCacheService.Controllers
 
         public async Task<bool> CheckThisInfoCityOnly(Address address)
         {
+            if (address.city_fias_id == null ||
+                address.fias_id == null) return false;
+
             return address.city_fias_id.Equals(address.fias_id);
         }
 
