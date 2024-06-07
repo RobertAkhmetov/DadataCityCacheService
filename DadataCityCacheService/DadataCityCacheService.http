@@ -1,0 +1,6 @@
+@DadataCityCacheService_HostAddress = http://localhost:5142
+
+GET {{DadataCityCacheService_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
