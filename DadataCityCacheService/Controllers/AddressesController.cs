@@ -34,7 +34,7 @@ namespace DadataCityCacheService.Controllers
 
             string[] result;
 
-            var cachedInfoPresent = GetCachedInfo(address).ToArray() != null;
+            var cachedInfoPresent = (await GetCachedInfo(address)).ToArray() != null;
 
             
 
@@ -43,12 +43,7 @@ namespace DadataCityCacheService.Controllers
 
                 if (cachedInfoPresent)
                 {
-                    result = GetCachedInfo(address).ToArray();
-                }
-
-                if (cachedInfoPresent)
-                {
-                    result = GetCachedInfo(address).ToArray();
+                    result = (await GetCachedInfo(address)).ToArray();
                 }
                 else
                 {
@@ -62,7 +57,7 @@ namespace DadataCityCacheService.Controllers
 
             if (cachedInfoPresent)
             {
-                result = GetCachedInfo(address).ToArray();
+                result = (await GetCachedInfo(address)).ToArray();
             }
             else
             {
@@ -88,11 +83,13 @@ namespace DadataCityCacheService.Controllers
         }
 
 
-        public Cities GetCachedInfo(Address address)
+        public async Task<City> GetCachedInfo(Address address)
         {
-            var Cities = _context.Cities.FindAsync(address.fias_id);
+            if (address is null) throw new NullReferenceException();
 
-            return Cities.Result;
+            var city = await _context.Cities.FindAsync(address.fias_id);
+
+            return city;
         }
 
 
@@ -105,14 +102,14 @@ namespace DadataCityCacheService.Controllers
         }
 
 
-        public async Task SaveToDb(Cities Cities)
+        public async Task SaveToDb(City city)
         {
             bool exists = await _context.Cities
-                .AnyAsync(e => e.FiasId == Cities.FiasId);
+                .AnyAsync(e => e.FiasId == city.FiasId);
 
             if (exists) return;
 
-            await _context.Cities.AddAsync(Cities);
+            await _context.Cities.AddAsync(city);
             await _context.SaveChangesAsync();
 
         }

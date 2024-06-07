@@ -5,7 +5,7 @@ namespace DadataCityCacheService.Data;
 
 public interface IAppDbContext
 { 
-    DbSet<Cities> Cities { get; }
+    DbSet<City> Cities { get; }
     
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }

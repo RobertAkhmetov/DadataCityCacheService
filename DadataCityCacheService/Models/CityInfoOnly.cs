@@ -5,7 +5,7 @@ using System.ComponentModel.DataAnnotations;
 namespace DadataCityCacheService.Models
 {
     [Table("cities")]
-    public class Cities
+    public class City
     {
         [Key]
         [Column("fias_id")]

@@ -5,7 +5,7 @@ namespace DadataCityCacheService.Data;
 
 public class AppDbContext : DbContext, IAppDbContext
 {
-    public DbSet<Cities> Cities => Set<Cities>();
+    public DbSet<City> Cities => Set<City>();
 
     public AppDbContext()
     {
