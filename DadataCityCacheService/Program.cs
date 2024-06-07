@@ -1,3 +1,4 @@
+using DadataCityCacheService.Data;
 using DadataCityCacheService.Models;
 using DadataCityCacheService.Services.DadataApiClient;
 using Microsoft.EntityFrameworkCore;
@@ -29,6 +30,8 @@ builder.Services.AddSingleton<IDadataApiClient, DadataApiClient>(x =>
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseMySql(connectionString, new MySqlServerVersion(new Version(10, 4, 17))));
+
+builder.Services.AddScoped<IAppDbContext>(provider => provider.GetRequiredService<AppDbContext>());
 
 
 builder.Configuration.AddJsonFile("appsettings.json");

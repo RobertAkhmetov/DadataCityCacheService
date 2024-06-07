@@ -1,23 +1,31 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using System.ComponentModel.DataAnnotations.Schema;
+using System.ComponentModel.DataAnnotations;
 
 namespace DadataCityCacheService.Models
 {
-    [PrimaryKey(propertyName: "fias_id")]
-    public class CityInfoOnly
+    [Table("cities")]
+    public class Cities
     {
-        public string fias_id { get; set; }
+        [Key]
+        [Column("fias_id")]
+        public string FiasId { get; set; } = null!;
 
-        public string geo_lat { get; set; }
+        [Column("geo_lat")]
+        public string? GeoLat { get; set; }
 
-        public string geo_lon { get; set; }
+        [Column("geo_lon")]
+        public string? GeoLon { get; set; }
 
-        public string result { get; set; }
+        [Column("result")]
+        public string? Result { get; set; }
 
-        public string timezone { get; set; }
+        [Column("timezone")]
+        public string? Timezone { get; set; }
 
         public string[] ToArray()
         {
-            return new[] { fias_id, geo_lat, geo_lon, result, timezone };
+            return new[] { FiasId, GeoLat, GeoLon, Result, Timezone };
         }
     }
 }

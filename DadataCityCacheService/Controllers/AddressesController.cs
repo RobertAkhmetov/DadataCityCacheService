@@ -4,6 +4,7 @@ using DadataCityCacheService.Models;
 using DadataCityCacheService.Services.DadataApiClient;
 using Microsoft.EntityFrameworkCore;
 using DadataCityCacheService.Extensions;
+using DadataCityCacheService.Data;
 
 namespace DadataCityCacheService.Controllers
 {
@@ -11,9 +12,9 @@ namespace DadataCityCacheService.Controllers
     [Route("api/addresses")]
     public class AddressesController : ControllerBase
     {
-        private readonly AppDbContext _context;
+        private readonly IAppDbContext _context;
         private readonly IDadataApiClient _dadataApiClient;
-        public AddressesController(AppDbContext context, IDadataApiClient dadataApiClient)
+        public AddressesController(IAppDbContext context, IDadataApiClient dadataApiClient)
         {
             _context = context;
             _dadataApiClient = dadataApiClient;
@@ -25,11 +26,11 @@ namespace DadataCityCacheService.Controllers
             var address = await _dadataApiClient.GetAddress(request);
 
 
-            await SaveToDb(address.GetCityInfoOnly());
+            await SaveToDb(address.GetCities());
 
 
 
-            var cityInfoOnly = await CheckThisInfoCityOnly(address);
+            var Cities = await CheckThisInfoCityOnly(address);
 
             string[] result;
 
@@ -37,7 +38,7 @@ namespace DadataCityCacheService.Controllers
 
             
 
-            if (cityInfoOnly)
+            if (Cities)
             {
 
                 if (cachedInfoPresent)
@@ -51,8 +52,8 @@ namespace DadataCityCacheService.Controllers
                 }
                 else
                 {
-                    await SaveToDb(address.GetCityInfoOnly());
-                    result = address.GetCityInfoOnly().ToArray();
+                    await SaveToDb(address.GetCities());
+                    result = address.GetCities().ToArray();
                 }
 
                 return result;
@@ -65,8 +66,8 @@ namespace DadataCityCacheService.Controllers
             }
             else
             {
-                await SaveToDb(address.GetCityInfoOnly());
-                result = address.GetCityInfoOnly().ToArray();
+                await SaveToDb(address.GetCities());
+                result = address.GetCities().ToArray();
             }
 
 
@@ -87,11 +88,11 @@ namespace DadataCityCacheService.Controllers
         }
 
 
-        public CityInfoOnly GetCachedInfo(Address address)
+        public Cities GetCachedInfo(Address address)
         {
-            var cityInfoOnly = _context.cities.FindAsync(address.fias_id);
+            var Cities = _context.Cities.FindAsync(address.fias_id);
 
-            return cityInfoOnly.Result;
+            return Cities.Result;
         }
 
 
@@ -104,14 +105,14 @@ namespace DadataCityCacheService.Controllers
         }
 
 
-        public async Task SaveToDb(CityInfoOnly cityInfoOnly)
+        public async Task SaveToDb(Cities Cities)
         {
-            bool exists = await _context.cities
-                .AnyAsync(e => e.fias_id == cityInfoOnly.fias_id);
+            bool exists = await _context.Cities
+                .AnyAsync(e => e.FiasId == Cities.FiasId);
 
             if (exists) return;
 
-            await _context.cities.AddAsync(cityInfoOnly);
+            await _context.Cities.AddAsync(Cities);
             await _context.SaveChangesAsync();
 
         }

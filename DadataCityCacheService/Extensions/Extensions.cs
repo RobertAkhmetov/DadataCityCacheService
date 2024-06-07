@@ -5,15 +5,15 @@ namespace DadataCityCacheService.Extensions
 {
     public static class Extensions
     {
-        public static CityInfoOnly GetCityInfoOnly(this Address address)
+        public static Cities GetCities(this Address address)
         {
             return new()
             {
-                fias_id = address.fias_id,
-                geo_lat = address.geo_lat,
-                geo_lon = address.geo_lon,
-                result = address.result,
-                timezone = address.timezone
+                FiasId = address.fias_id,
+                GeoLat = address.geo_lat,
+                GeoLon = address.geo_lon,
+                Result = address.result,
+                Timezone = address.timezone
             };
         }
     }
