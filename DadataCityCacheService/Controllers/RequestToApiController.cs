@@ -27,6 +27,12 @@ namespace DadataCityCacheService.Controllers
     [Route("[controller]")]
     public class DadaCacheController : ControllerBase
     {
+        AppDbContext _context;
+        public DadaCacheController(AppDbContext context)
+        {
+            _context = context;
+        }
+
         [HttpGet]
         public async Task<ActionResult<string[]>> Get([FromBody] string request)
         {
@@ -40,6 +46,8 @@ namespace DadataCityCacheService.Controllers
 
             if (!await CheckResponseCorrect()) throw new();
 
+
+            await SaveToDb(address.GetCityInfoOnly());
 
 
 
@@ -166,6 +174,8 @@ namespace DadataCityCacheService.Controllers
 
         public async Task SaveToDb(CityInfoOnly cityInfoOnly)
         {
+            await _context.cities.AddAsync(cityInfoOnly);
+            await _context.SaveChangesAsync();
 
         }
 

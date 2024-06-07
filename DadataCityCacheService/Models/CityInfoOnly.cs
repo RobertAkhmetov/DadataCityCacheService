@@ -1,5 +1,8 @@
-﻿namespace DadataCityCacheService.Models
+﻿using Microsoft.EntityFrameworkCore;
+
+namespace DadataCityCacheService.Models
 {
+    [PrimaryKey(propertyName: "fias_id")]
     public class CityInfoOnly
     {
         public string fias_id { get; set; }
