@@ -3,9 +3,26 @@ using Dadata;
 using Dadata.Model;
 using System.Text;
 using DadataCityCacheService.Models;
+using System;
 
 namespace DadataCityCacheService.Controllers
 {
+    public static class Extensions
+    {
+        public static CityInfoOnly GetCityInfoOnly(this Address address)
+        {
+            return new()
+            {
+                fias_id = address.fias_id,
+                geo_lat = address.geo_lat,
+                geo_lon = address.geo_lon,
+                result = address.result,
+                timezone = address.timezone
+            };
+        }
+    }
+
+
     [ApiController]
     [Route("[controller]")]
     public class DadaCacheController : ControllerBase
@@ -30,16 +47,57 @@ namespace DadataCityCacheService.Controllers
 
             string[] result;
 
+            var cachedInfoPresent = GetCachedInfo(address).ToArray() != null;
+
+            
+
             if (cityInfoOnly)
             {
-                result = TryGetCachedInfo(address, out CityInfoOnly cachedInfo) ? cachedInfo.ToArray() : new string[]
-                    {
-                    "dfsf"
-                    };
+
+                if (cachedInfoPresent)
+                {
+                    result = GetCachedInfo(address).ToArray();
+                }
+
+                if (cachedInfoPresent)
+                {
+                    result = GetCachedInfo(address).ToArray();
+                }
+                else
+                {
+                    await SaveToDb(address.GetCityInfoOnly());
+                    result = address.GetCityInfoOnly().ToArray();
+                }
 
                 return result;
             }
 
+
+            if (cachedInfoPresent)
+            {
+                result = GetCachedInfo(address).ToArray();
+            }
+            else
+            {
+                await SaveToDb(address.GetCityInfoOnly());
+                result = address.GetCityInfoOnly().ToArray();
+            }
+
+
+            var concreteAddressData = new List<string>()
+            {
+                address.fias_id,
+                address.region_with_type,
+                address.city_with_type,
+                address.street_with_type,
+                address.house,
+                address.flat
+            };
+
+            concreteAddressData.AddRange(result);
+
+
+            return concreteAddressData.ToArray();
 
 
 
@@ -92,20 +150,23 @@ namespace DadataCityCacheService.Controllers
             return true;
         }
 
-        public bool TryGetCachedInfo(Address address, out CityInfoOnly cityInfoOnly)
+        public CityInfoOnly GetCachedInfo(Address address)
         {
-            cityInfoOnly = new()
-            {
+            var cityInfoOnly = new CityInfoOnly();
 
-            };
-
-            return true;
+            return cityInfoOnly;
         }
 
 
         public async Task<bool> CheckThisInfoCityOnly(Address address)
         {
             return address.city_fias_id.Equals(address.fias_id);
+        }
+
+
+        public async Task SaveToDb(CityInfoOnly cityInfoOnly)
+        {
+
         }
 
     }
