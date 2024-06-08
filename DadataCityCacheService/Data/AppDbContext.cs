@@ -16,7 +16,5 @@ public class AppDbContext : DbContext, IAppDbContext
     {
         Database.EnsureCreated();
     }
-
-    
 }
 

@@ -25,7 +25,7 @@ namespace DadataCityCacheService.Models
 
         public string[] ToArray()
         {
-            return new[] { FiasId, GeoLat, GeoLon, Result, Timezone };
+            return new[] { FiasId, Result, GeoLat, GeoLon, Timezone };
         }
     }
 }

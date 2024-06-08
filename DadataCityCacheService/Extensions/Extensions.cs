@@ -5,7 +5,7 @@ namespace DadataCityCacheService.Extensions
 {
     public static class Extensions
     {
-        public static City GetCities(this Address address)
+        public static City ToCity(this Address address)
         {
             return new()
             {

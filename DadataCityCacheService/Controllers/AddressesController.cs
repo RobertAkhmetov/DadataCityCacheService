@@ -25,44 +25,35 @@ namespace DadataCityCacheService.Controllers
         {
             var address = await _dadataApiClient.GetAddress(request);
 
-
-            await SaveToDb(address.GetCities());
-
-
-
-            var Cities = await CheckThisInfoCityOnly(address);
-
-            string[] result;
-
-            var cachedInfoPresent = (await GetCachedInfo(address)).ToArray() != null;
-
             
+            string[] cityInfo;
 
-            if (Cities)
+            var cachedInfo = await GetCachedInfo(address);
+
+            if (await IsCityInfoOnly(address))
             {
 
-                if (cachedInfoPresent)
+                if (cachedInfo != null)
                 {
-                    result = (await GetCachedInfo(address)).ToArray();
+                    cityInfo = cachedInfo.ToArray();
                 }
                 else
                 {
-                    await SaveToDb(address.GetCities());
-                    result = address.GetCities().ToArray();
+                    await SaveToDb(address.ToCity());
+                    cityInfo = address.ToCity().ToArray();
                 }
 
-                return result;
+                return cityInfo;
             }
 
 
-            if (cachedInfoPresent)
+            if (cachedInfo != null)
             {
-                result = (await GetCachedInfo(address)).ToArray();
+                cityInfo = cachedInfo.ToArray();
             }
             else
             {
-                await SaveToDb(address.GetCities());
-                result = address.GetCities().ToArray();
+                cityInfo = address.ToCity().ToArray();
             }
 
 
@@ -76,7 +67,7 @@ namespace DadataCityCacheService.Controllers
                 address.flat
             };
 
-            concreteAddressData.AddRange(result);
+            concreteAddressData.AddRange(cityInfo);
 
 
             return concreteAddressData.ToArray();
@@ -89,11 +80,13 @@ namespace DadataCityCacheService.Controllers
 
             var city = await _context.Cities.FindAsync(address.fias_id);
 
+            if (city == null) city = await _context.Cities.FindAsync(address.city_fias_id);
+
             return city;
         }
 
 
-        public async Task<bool> CheckThisInfoCityOnly(Address address)
+        public async Task<bool> IsCityInfoOnly(Address address)
         {
             if (address.city_fias_id == null ||
                 address.fias_id == null) return false;
