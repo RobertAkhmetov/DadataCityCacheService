@@ -5,9 +5,6 @@ using DadataCityCacheService.Services.DadataApiClient;
 using Microsoft.EntityFrameworkCore;
 using DadataCityCacheService.Extensions;
 using DadataCityCacheService.Data;
-using Microsoft.Extensions.Caching.Memory;
-using System;
-using System.Net;
 
 namespace DadataCityCacheService.Controllers
 {
@@ -17,8 +14,8 @@ namespace DadataCityCacheService.Controllers
     {
         private readonly IAppDbContext _context;
         private readonly IDadataApiClient _dadataApiClient;
-        private readonly ILogger<DadataApiClient> _logger;
-        public AddressesController(IAppDbContext context, IDadataApiClient dadataApiClient, ILogger<DadataApiClient> logger)
+        private readonly ILogger<AddressesController> _logger;
+        public AddressesController(IAppDbContext context, IDadataApiClient dadataApiClient, ILogger<AddressesController> logger)
         {
             _context = context;
             _dadataApiClient = dadataApiClient;
@@ -83,7 +80,11 @@ namespace DadataCityCacheService.Controllers
 
         public async Task<City> GetCachedInfo(Address address)
         {
-            if (address is null) throw new NullReferenceException();
+            if (address is null)
+            {
+                _logger.LogError("Address in null");
+                return default;
+            }
 
             try
             {
@@ -105,7 +106,7 @@ namespace DadataCityCacheService.Controllers
         {
             try
             {
-                var city = await _context.Cities.Where(c => c.Result.Contains(name)).FirstOrDefaultAsync();
+                var city = await _context.Cities.FirstOrDefaultAsync(c => c.Result.Contains(name));
 
                 return city;
             }
@@ -121,15 +122,12 @@ namespace DadataCityCacheService.Controllers
 
         public bool IsCityInfoOnly(Address address)
         {
-            if(int.TryParse(address.fias_level,out int detailLevel))
+            if (address.city_fias_id != null && address.fias_id != null)
             {
-                if (detailLevel <= 4) return true;
+                return address.city_fias_id.Equals(address.fias_id);
             }
 
-            if (address.city_fias_id == null ||
-                address.fias_id == null) return false;
-
-            return address.city_fias_id.Equals(address.fias_id);
+            return int.TryParse(address.fias_level, out int detailLevel) && detailLevel <= 4;
         }
 
 
@@ -149,9 +147,6 @@ namespace DadataCityCacheService.Controllers
             {
                 _logger.LogError(exception, exception.Message);
             }
-
-            
-
         }
 
     }
