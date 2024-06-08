@@ -5,6 +5,9 @@ using DadataCityCacheService.Services.DadataApiClient;
 using Microsoft.EntityFrameworkCore;
 using DadataCityCacheService.Extensions;
 using DadataCityCacheService.Data;
+using Microsoft.Extensions.Caching.Memory;
+using System;
+using System.Net;
 
 namespace DadataCityCacheService.Controllers
 {
@@ -14,23 +17,27 @@ namespace DadataCityCacheService.Controllers
     {
         private readonly IAppDbContext _context;
         private readonly IDadataApiClient _dadataApiClient;
-        public AddressesController(IAppDbContext context, IDadataApiClient dadataApiClient)
+        private readonly ILogger<DadataApiClient> _logger;
+        public AddressesController(IAppDbContext context, IDadataApiClient dadataApiClient, ILogger<DadataApiClient> logger)
         {
             _context = context;
             _dadataApiClient = dadataApiClient;
+            _logger = logger;
         }
 
         [HttpGet]
         public async Task<ActionResult<string[]>> GetAddressInfo([FromBody] string request)
         {
+            string[] cityInfo;
+
             var address = await _dadataApiClient.GetAddress(request);
 
-            
-            string[] cityInfo;
+            if (address == default) return (await GetCachedInfoByCityName(request)).ToArray();
+
 
             var cachedInfo = await GetCachedInfo(address);
 
-            if (await IsCityInfoOnly(address))
+            if (IsCityInfoOnly(address))
             {
 
                 if (cachedInfo != null)
@@ -78,16 +85,47 @@ namespace DadataCityCacheService.Controllers
         {
             if (address is null) throw new NullReferenceException();
 
-            var city = await _context.Cities.FindAsync(address.fias_id);
+            try
+            {
+                var city = await _context.Cities.FindAsync(address.fias_id);
 
-            if (city == null) city = await _context.Cities.FindAsync(address.city_fias_id);
+                if (city == null) city = await _context.Cities.FindAsync(address.city_fias_id);
 
-            return city;
+                return city;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while fetching cached info by address.");
+            }
+
+            return default;
+        }
+
+        public async Task<City> GetCachedInfoByCityName(string name)
+        {
+            try
+            {
+                var city = await _context.Cities.Where(c => c.Result.Contains(name)).FirstOrDefaultAsync();
+
+                return city;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while fetching cached info by city name.");
+            }
+
+
+            return default;
         }
 
 
-        public async Task<bool> IsCityInfoOnly(Address address)
+        public bool IsCityInfoOnly(Address address)
         {
+            if(int.TryParse(address.fias_level,out int detailLevel))
+            {
+                if (detailLevel <= 4) return true;
+            }
+
             if (address.city_fias_id == null ||
                 address.fias_id == null) return false;
 
@@ -102,8 +140,17 @@ namespace DadataCityCacheService.Controllers
 
             if (exists) return;
 
-            await _context.Cities.AddAsync(city);
-            await _context.SaveChangesAsync();
+            try
+            {
+                await _context.Cities.AddAsync(city);
+                await _context.SaveChangesAsync();
+            }
+            catch (Exception exception)
+            {
+                _logger.LogError(exception, exception.Message);
+            }
+
+            
 
         }
 
