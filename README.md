@@ -1,5 +1,7 @@
 # DadataCityCacheService
-Работает локально, слушает на порту 7123
+
+publish exe Работает локально, слушает на http://localhost:5000 (HTTP)
+если запускать в visual studio исходники, слушает на https://localhost:7123 (HTTPS)
 
 Команды HTTP GET
 https://localhost:7123/api/addresses
