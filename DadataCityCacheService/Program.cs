@@ -1,19 +1,30 @@
 using DadataCityCacheService;
+using Microsoft.AspNetCore.Hosting;
 using System.Net;
 
-var builder = WebApplication.CreateBuilder(args);
+namespace DadataCityCacheService;
 
-builder.WebHost.ConfigureKestrel(options =>
+public class Program
 {
-    // Load Kestrel configuration from appsettings.json
-    options.Configure(builder.Configuration.GetSection("Kestrel"));
-});
+    public static void Main(string[] args)
+    {
+        var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddServices(builder.Configuration);
+        builder.WebHost.ConfigureKestrel(options =>
+        {
+            // Load Kestrel configuration from appsettings.json
+            options.Configure(builder.Configuration.GetSection("Kestrel"));
+        });
 
-var app = builder.Build();
+        builder.Services.AddServices(builder.Configuration);
 
-app.UseHealthChecks("/health");
-app.UseHttpsRedirection();
-app.MapControllers();
-app.Run();
+        var app = builder.Build();
+
+        app.UseHealthChecks("/health");
+        app.UseHttpsRedirection();
+        app.MapControllers();
+        app.Run();
+
+    }
+
+}
