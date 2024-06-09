@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace DadataCityCacheService.Data;
 
-public class AppDbContext : DbContext, IAppDbContext
+public sealed class AppDbContext : DbContext, IAppDbContext
 {
     public DbSet<City> Cities => Set<City>();
 
